@@ -17,6 +17,40 @@ aliases:
 
 # Change Log
 
+## [Unreleased](https://github.com/appscode/kubed/tree/HEAD)
+
+[Full Changelog](https://github.com/appscode/kubed/compare/0.5.0...HEAD)
+
+**Closed issues:**
+
+- Cleanup indexed data [\#212](https://github.com/appscode/kubed/issues/212)
+- Delete search index when namespace is deleted [\#210](https://github.com/appscode/kubed/issues/210)
+- Allow configuring resource types for Add/Update notification [\#192](https://github.com/appscode/kubed/issues/192)
+- Used shared informer and queue [\#152](https://github.com/appscode/kubed/issues/152)
+- Support soft loading of ClusterConfig [\#51](https://github.com/appscode/kubed/issues/51)
+
+**Merged pull requests:**
+
+- Rename searchresult to stuff [\#214](https://github.com/appscode/kubed/pull/214) ([tamalsaha](https://github.com/tamalsaha))
+- Add installer script [\#211](https://github.com/appscode/kubed/pull/211) ([tamalsaha](https://github.com/tamalsaha))
+- Add tests for RestMapper [\#209](https://github.com/appscode/kubed/pull/209) ([tamalsaha](https://github.com/tamalsaha))
+- Set GroupVersionKind for event handlers [\#208](https://github.com/appscode/kubed/pull/208) ([tamalsaha](https://github.com/tamalsaha))
+- Rename api package by version [\#207](https://github.com/appscode/kubed/pull/207) ([tamalsaha](https://github.com/tamalsaha))
+- Properly handle update events for trashcan [\#206](https://github.com/appscode/kubed/pull/206) ([tamalsaha](https://github.com/tamalsaha))
+- Use fsnotify from kutil [\#205](https://github.com/appscode/kubed/pull/205) ([tamalsaha](https://github.com/tamalsaha))
+- Fix NPE [\#204](https://github.com/appscode/kubed/pull/204) ([tamalsaha](https://github.com/tamalsaha))
+- Generate DeepCopy methods for ClusterConfig [\#203](https://github.com/appscode/kubed/pull/203) ([tamalsaha](https://github.com/tamalsaha))
+- Fix config validator for event forwarder [\#202](https://github.com/appscode/kubed/pull/202) ([tamalsaha](https://github.com/tamalsaha))
+- Transform event forwarder rules to rules format [\#201](https://github.com/appscode/kubed/pull/201) ([tamalsaha](https://github.com/tamalsaha))
+- Split Setup\(\) into New\(\) and Configure\(\) [\#199](https://github.com/appscode/kubed/pull/199) ([tamalsaha](https://github.com/tamalsaha))
+- Remove reverse index [\#198](https://github.com/appscode/kubed/pull/198) ([tamalsaha](https://github.com/tamalsaha))
+- Update bleve to v0.6.0 [\#197](https://github.com/appscode/kubed/pull/197) ([tamalsaha](https://github.com/tamalsaha))
+- Turn kubed api server into an EAS [\#196](https://github.com/appscode/kubed/pull/196) ([tamalsaha](https://github.com/tamalsaha))
+- Allow configuring resource types for Add/Update notification [\#195](https://github.com/appscode/kubed/pull/195) ([tamalsaha](https://github.com/tamalsaha))
+- Use SharedInformerFactory [\#193](https://github.com/appscode/kubed/pull/193) ([tamalsaha](https://github.com/tamalsaha))
+- Support soft loading of ClusterConfig [\#125](https://github.com/appscode/kubed/pull/125) ([tamalsaha](https://github.com/tamalsaha))
+
+
 ## [0.5.0](https://github.com/appscode/kubed/releases/tag/0.5.0) (2018-01-16)
 Kubed 0.5.0 can send notifications to Telegram and fixes various issues related to janitors and cluster backup.
 
