@@ -67,7 +67,7 @@ func (c *OperatorConfig) New() (*Operator, error) {
 	op.trashCan = &rbin.RecycleBin{}
 	op.eventProcessor = &eventer.EventForwarder{Client: op.KubeClient.Discovery()}
 	op.configSyncer = syncer.New(op.KubeClient, op.recorder)
-	op.labelExtractor = label_extractor.New(op.KubeClient)
+	op.extractDockerLabel = label_extractor.New(op.KubeClient)
 
 	op.cron = cron.New()
 	op.cron.Start()

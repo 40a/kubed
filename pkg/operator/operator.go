@@ -69,12 +69,12 @@ type Operator struct {
 
 	ClientConfig *rest.Config
 
-	notifierCred   envconfig.LoaderFunc
-	recorder       record.EventRecorder
-	trashCan       *rbin.RecycleBin
-	eventProcessor *eventer.EventForwarder
-	configSyncer   *syncer.ConfigSyncer
-	labelExtractor *label_extractor.LabelExtractor
+	notifierCred       envconfig.LoaderFunc
+	recorder           record.EventRecorder
+	trashCan           *rbin.RecycleBin
+	eventProcessor     *eventer.EventForwarder
+	configSyncer       *syncer.ConfigSyncer
+	extractDockerLabel *label_extractor.ExtractDockerLabel
 
 	cron *cron.Cron
 
@@ -144,7 +144,7 @@ func (op *Operator) Configure() error {
 		return err
 	}
 
-	op.labelExtractor.Configure(op.config.EnableLabelExtractor)
+	op.extractDockerLabel.Configure(op.config.EnableExtractDockerLabel)
 
 	for _, j := range op.config.Janitors {
 		if j.Kind == api.JanitorInfluxDB {
@@ -162,7 +162,7 @@ func (op *Operator) Configure() error {
 func (op *Operator) setupWorkloadInformers() {
 	deploymentInformer := op.kubeInformerFactory.Apps().V1beta1().Deployments().Informer()
 	op.addEventHandlers(deploymentInformer, apps.SchemeGroupVersion.WithKind("Deployment"))
-	deploymentInformer.AddEventHandler(op.labelExtractor.LabelExtractorHandler())
+	deploymentInformer.AddEventHandler(op.extractDockerLabel.ExtractDockerLabelHandler())
 
 	rcInformer := op.kubeInformerFactory.Core().V1().ReplicationControllers().Informer()
 	op.addEventHandlers(rcInformer, core.SchemeGroupVersion.WithKind("ReplicationController"))

@@ -46,9 +46,9 @@ func main() {
 
 func CreateClusterConfig() apis.ClusterConfig {
 	return apis.ClusterConfig{
-		ClusterName:          "unicorn",
-		EnableConfigSyncer:   true,
-		EnableLabelExtractor: true,
+		ClusterName:              "unicorn",
+		EnableConfigSyncer:       true,
+		EnableExtractDockerLabel: true,
 		EventForwarder: &apis.EventForwarderSpec{
 			Rules: []apis.PolicyRule{
 				{
