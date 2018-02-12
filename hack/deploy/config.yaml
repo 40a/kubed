@@ -1,5 +1,6 @@
 clusterName: unicorn
 enableConfigSyncer: true
+enableLabelExtractor: true
 eventForwarder:
   receivers:
   - notifier: Mailgun

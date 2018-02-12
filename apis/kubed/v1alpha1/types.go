@@ -25,14 +25,15 @@ const (
 type ClusterConfig struct {
 	metav1.TypeMeta `json:",inline"`
 
-	ClusterName        string              `json:"clusterName,omitempty"`
-	Snapshotter        *SnapshotSpec       `json:"snapshotter,omitempty"`
-	RecycleBin         *RecycleBinSpec     `json:"recycleBin,omitempty"`
-	EventForwarder     *EventForwarderSpec `json:"eventForwarder,omitempty"`
-	EnableConfigSyncer bool                `json:"enableConfigSyncer"`
-	NotifierSecretName string              `json:"notifierSecretName,omitempty"`
-	Janitors           []JanitorSpec       `json:"janitors,omitempty"`
-	KubeConfigFile     string              `json:"kubeConfigFile,omitempty"`
+	ClusterName          string              `json:"clusterName,omitempty"`
+	Snapshotter          *SnapshotSpec       `json:"snapshotter,omitempty"`
+	RecycleBin           *RecycleBinSpec     `json:"recycleBin,omitempty"`
+	EventForwarder       *EventForwarderSpec `json:"eventForwarder,omitempty"`
+	EnableConfigSyncer   bool                `json:"enableConfigSyncer"`
+	EnableLabelExtractor bool                `json:"enableLabelExtractor"`
+	NotifierSecretName   string              `json:"notifierSecretName,omitempty"`
+	Janitors             []JanitorSpec       `json:"janitors,omitempty"`
+	KubeConfigFile       string              `json:"kubeConfigFile,omitempty"`
 }
 
 type JanitorSpec struct {

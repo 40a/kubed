@@ -16,6 +16,7 @@ import (
 	"github.com/appscode/kubed/pkg/elasticsearch"
 	"github.com/appscode/kubed/pkg/eventer"
 	"github.com/appscode/kubed/pkg/influxdb"
+	label_extractor "github.com/appscode/kubed/pkg/label_extractor"
 	rbin "github.com/appscode/kubed/pkg/recyclebin"
 	indexers "github.com/appscode/kubed/pkg/registry/resource"
 	"github.com/appscode/kubed/pkg/storage"
@@ -73,6 +74,7 @@ type Operator struct {
 	trashCan       *rbin.RecycleBin
 	eventProcessor *eventer.EventForwarder
 	configSyncer   *syncer.ConfigSyncer
+	labelExtractor *label_extractor.LabelExtractor
 
 	cron *cron.Cron
 
@@ -142,6 +144,8 @@ func (op *Operator) Configure() error {
 		return err
 	}
 
+	op.labelExtractor.Configure(op.config.EnableLabelExtractor)
+
 	for _, j := range op.config.Janitors {
 		if j.Kind == api.JanitorInfluxDB {
 			janitor := influx.Janitor{Spec: *j.InfluxDB, TTL: j.TTL.Duration}
@@ -158,6 +162,7 @@ func (op *Operator) Configure() error {
 func (op *Operator) setupWorkloadInformers() {
 	deploymentInformer := op.kubeInformerFactory.Apps().V1beta1().Deployments().Informer()
 	op.addEventHandlers(deploymentInformer, apps.SchemeGroupVersion.WithKind("Deployment"))
+	deploymentInformer.AddEventHandler(op.labelExtractor.LabelExtractorHandler())
 
 	rcInformer := op.kubeInformerFactory.Core().V1().ReplicationControllers().Informer()
 	op.addEventHandlers(rcInformer, core.SchemeGroupVersion.WithKind("ReplicationController"))
