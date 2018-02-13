@@ -1,6 +1,6 @@
 clusterName: unicorn
 enableConfigSyncer: true
-enableLabelExtractor: true
+enableExtractDockerLabel: true
 eventForwarder:
   receivers:
   - notifier: Mailgun
@@ -47,7 +47,7 @@ eventForwarder:
     - group: certificates.k8s.io
       resources:
       - certificatesigningrequests
-notifierSecretName: notifier-config
+#notifierSecretName: notifier-config
 recycleBin:
   handleUpdates: false
   path: /tmp/kubed/trash

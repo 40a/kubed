@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/appscode/go/log"
 	apps_util "github.com/appscode/kutil/apps/v1beta1"
@@ -19,7 +20,7 @@ import (
 
 // getAllSecrets() takes imagePullSecrets and return the list of secret names as an array of
 // string
-func (l *LabelExtractor) getAllSecrets(imagePullSecrets []corev1.LocalObjectReference) []string {
+func getAllSecrets(imagePullSecrets []corev1.LocalObjectReference) []string {
 	secretNames := []string{}
 	for _, secretName := range imagePullSecrets {
 		secretNames = append(secretNames, secretName.Name)
@@ -28,13 +29,33 @@ func (l *LabelExtractor) getAllSecrets(imagePullSecrets []corev1.LocalObjectRefe
 	return secretNames
 }
 
+// This method add <prefix> as prefix to the keys of <labels>
+func addPrefixToLabels(labels map[string]string, prefix string) {
+	for key, val := range labels {
+		delete(labels, key)
+		labels[prefix+key] = val
+	}
+}
+
+// This method removes the annotations which have key with <prefix> as prefix
+func removeOldAnnotations(annotations map[string]string, prefix string) {
+	for key := range annotations {
+		if strings.HasPrefix(key, prefix) {
+			delete(annotations, key)
+		}
+	}
+}
+
 // This method takes a deployment <deploy> and checks if there exists any labels in container images
 // at PodTemplateSpec. If exists then add them to annotation of the <deploy>. It uses the secrets
 // provided at 'imagePullSecrets' for getting labels from images
-func (l *LabelExtractor) Annotate(deploy *v1beta1.Deployment) error {
-	secretNames := l.getAllSecrets(deploy.Spec.Template.Spec.ImagePullSecrets)
+func (l *ExtractDockerLabel) Annotate(deploy *v1beta1.Deployment) error {
+	secretNames := getAllSecrets(deploy.Spec.Template.Spec.ImagePullSecrets)
 
 	annotations := make(map[string]string)
+	removeOldAnnotations(annotations, "docker.com/")
+	//annotations := deploy.ObjectMeta.Annotations
+
 	for _, cont := range deploy.Spec.Template.Spec.Containers {
 		img := cont.Image
 
@@ -43,11 +64,10 @@ func (l *LabelExtractor) Annotate(deploy *v1beta1.Deployment) error {
 			return err
 		}
 
-		var mergeErr error = nil
+		prefix := "docker.com/" + cont.Name + "-"
+
+		addPrefixToLabels(labels, prefix)
 		core_util.UpsertMap(annotations, labels)
-		if mergeErr != nil {
-			return fmt.Errorf("for img %s %v", mergeErr)
-		}
 	}
 
 	_, status, err := apps_util.PatchDeployment(l.kubeClient, deploy, func(deployment *v1beta1.Deployment) *v1beta1.Deployment {
@@ -68,7 +88,7 @@ func (l *LabelExtractor) Annotate(deploy *v1beta1.Deployment) error {
 // to extract labels of the <image> for all secrets' content. If found then returns labels otherwise
 // returns corresponding error. If <image> is not found with the secret info, then it tries with the
 // public docker url="https://registry-1.docker.io/"
-func (l *LabelExtractor) GetLabels(namespace, image string, secretNames []string) (map[string]string, error) {
+func (l *ExtractDockerLabel) GetLabels(namespace, image string, secretNames []string) (map[string]string, error) {
 	log.Infoln("img =", image, "secret names =", secretNames)
 
 	repo, tag, _, err := parsers.ParseImageName(image)
@@ -124,7 +144,7 @@ func (l *LabelExtractor) GetLabels(namespace, image string, secretNames []string
 // This method returns the labels of docker image. The image name is <reopName/tag> and the api url
 // is <url>. The essential credentials are <username> and <pass>. If image is found it returns tuple
 // {labels, err=nil, status=0}, otherwise it returns tuple {label=nil, err, status}
-func (l *LabelExtractor) ExtractLabelsForThisCred(
+func (l *ExtractDockerLabel) ExtractLabelsForThisCred(
 	url, username, pass string,
 	repoName, tag string) (map[string]string, error, int) {
 

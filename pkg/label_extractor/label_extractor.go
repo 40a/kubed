@@ -3,13 +3,13 @@ package label_extractor
 import (
 	"sync"
 
-	ac_log "github.com/appscode/go/log"
+	"github.com/appscode/go/log"
 	"k8s.io/api/apps/v1beta1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 )
 
-type LabelExtractor struct {
+type ExtractDockerLabel struct {
 	kubeClient kubernetes.Interface
 
 	enable bool
@@ -21,24 +21,24 @@ type RegistrySecret struct {
 	Password string `json:"password"`
 }
 
-func New(kubeClient kubernetes.Interface) *LabelExtractor {
-	return &LabelExtractor{
+func New(kubeClient kubernetes.Interface) *ExtractDockerLabel {
+	return &ExtractDockerLabel{
 		kubeClient: kubeClient,
 	}
 }
 
-func (l *LabelExtractor) Configure(enable bool) {
+func (l *ExtractDockerLabel) Configure(enable bool) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
 	l.enable = enable
 }
 
-func (l *LabelExtractor) LabelExtractorHandler() cache.ResourceEventHandler {
+func (l *ExtractDockerLabel) ExtractDockerLabelHandler() cache.ResourceEventHandler {
 	return l
 }
 
-func (l *LabelExtractor) OnAdd(obj interface{}) {
+func (l *ExtractDockerLabel) OnAdd(obj interface{}) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
@@ -48,12 +48,12 @@ func (l *LabelExtractor) OnAdd(obj interface{}) {
 
 	if res, ok := obj.(*v1beta1.Deployment); ok {
 		if err := l.Annotate(res); err != nil {
-			ac_log.Errorln(err)
+			log.Errorln(err)
 		}
 	}
 }
 
-func (l *LabelExtractor) OnUpdate(oldObj, newObj interface{}) {
+func (l *ExtractDockerLabel) OnUpdate(oldObj, newObj interface{}) {
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
@@ -74,9 +74,9 @@ func (l *LabelExtractor) OnUpdate(oldObj, newObj interface{}) {
 		return
 	} else {
 		if err := l.Annotate(newRes); err != nil {
-			ac_log.Errorln(err)
+			log.Errorln(err)
 		}
 	}
 }
 
-func (l *LabelExtractor) OnDelete(obj interface{}) {}
+func (l *ExtractDockerLabel) OnDelete(obj interface{}) {}
