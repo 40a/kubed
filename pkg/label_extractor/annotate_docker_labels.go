@@ -39,6 +39,10 @@ func addPrefixToLabels(labels map[string]string, prefix string) {
 
 // This method removes the annotations which have key with <prefix> as prefix
 func removeOldAnnotations(annotations map[string]string, prefix string) {
+	if annotations == nil {
+		return
+	}
+
 	for key := range annotations {
 		if strings.HasPrefix(key, prefix) {
 			delete(annotations, key)
@@ -53,9 +57,6 @@ func (l *ExtractDockerLabel) Annotate(deploy *v1beta1.Deployment) error {
 	secretNames := getAllSecrets(deploy.Spec.Template.Spec.ImagePullSecrets)
 
 	annotations := make(map[string]string)
-	removeOldAnnotations(annotations, "docker.com/")
-	//annotations := deploy.ObjectMeta.Annotations
-
 	for _, cont := range deploy.Spec.Template.Spec.Containers {
 		img := cont.Image
 
@@ -65,16 +66,18 @@ func (l *ExtractDockerLabel) Annotate(deploy *v1beta1.Deployment) error {
 		}
 
 		prefix := "docker.com/" + cont.Name + "-"
-
 		addPrefixToLabels(labels, prefix)
 		core_util.UpsertMap(annotations, labels)
 	}
 
 	_, status, err := apps_util.PatchDeployment(l.kubeClient, deploy, func(deployment *v1beta1.Deployment) *v1beta1.Deployment {
-		deployment.ObjectMeta.Annotations = annotations
+		removeOldAnnotations(deployment.ObjectMeta.Annotations, "docker.com/")
+		deployment.ObjectMeta.SetAnnotations(annotations)
 
 		return deployment
 	})
+
+	log.Infoln("status =", status)
 	if err != nil {
 		return fmt.Errorf("error status = %s: %v", status, err)
 	}
@@ -108,7 +111,7 @@ func (l *ExtractDockerLabel) GetLabels(namespace, image string, secretNames []st
 			configData = append(configData, val...)
 			break
 		}
-		log.Infoln("config.json =", string(configData))
+		//log.Infoln("config.json =", string(configData))
 
 		var registrySecrets map[string]RegistrySecret
 		err = json.NewDecoder(bytes.NewReader(configData)).Decode(&registrySecrets)

@@ -1,15 +1,15 @@
 package e2e
 
 import (
+	"time"
+
+	"github.com/appscode/go/log"
 	"github.com/appscode/kubed/test/framework"
 	"github.com/appscode/kutil/meta"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/apps/v1beta1"
 	core "k8s.io/api/core/v1"
-	"time"
-
-	"github.com/appscode/go/log"
 )
 
 var _ = FDescribe("Extract Docker Label", func() {
