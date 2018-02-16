@@ -3,8 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/pkg/errors"
-
 	"log"
 	"os"
 	"path"
