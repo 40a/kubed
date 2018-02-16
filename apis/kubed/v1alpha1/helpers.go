@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	yc "github.com/appscode/go/encoding/yaml"
-	"github.com/appscode/go/errors"
 	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
 )
 
 func LoadConfig(configPath string) (*ClusterConfig, error) {

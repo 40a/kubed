@@ -288,7 +288,7 @@ func (op *Operator) setupKubeDBInformers() {
 		pgInformer := op.kubedbInformerFactory.Kubedb().V1alpha1().Postgreses().Informer()
 		op.addEventHandlers(pgInformer, kubedb_api.SchemeGroupVersion.WithKind(kubedb_api.ResourceKindPostgres))
 
-		esInformer := op.kubedbInformerFactory.Kubedb().V1alpha1().Elasticsearchs().Informer()
+		esInformer := op.kubedbInformerFactory.Kubedb().V1alpha1().Elasticsearches().Informer()
 		op.addEventHandlers(esInformer, kubedb_api.SchemeGroupVersion.WithKind(kubedb_api.ResourceKindElasticsearch))
 
 		myInformer := op.kubedbInformerFactory.Kubedb().V1alpha1().MySQLs().Informer()
