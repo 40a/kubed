@@ -144,7 +144,7 @@ func (op *Operator) Configure() error {
 		return err
 	}
 
-	op.extractDockerLabel.Configure(op.config.EnableExtractDockerLabel)
+	op.extractDockerLabel.Configure(op.config.ExtractDockerLabel)
 
 	for _, j := range op.config.Janitors {
 		if j.Kind == api.JanitorInfluxDB {
