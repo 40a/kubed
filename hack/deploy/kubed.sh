@@ -116,10 +116,14 @@ if [ "$KUBED_UNINSTALL" -eq 1 ]; then
     kubectl delete service -l app=kubed --namespace $KUBED_NAMESPACE
     kubectl delete secret -l app=kubed --namespace $KUBED_NAMESPACE
     kubectl delete apiservice -l app=kubed --namespace $KUBED_NAMESPACE
+    kubectl delete validatingwebhookconfiguration -l app=kubed --namespace $KUBED_NAMESPACE
+    kubectl delete mutatingwebhookconfiguration -l app=kubed --namespace $KUBED_NAMESPACE
     # Delete RBAC objects, if --rbac flag was used.
     kubectl delete serviceaccount -l app=kubed --namespace $KUBED_NAMESPACE
     kubectl delete clusterrolebindings -l app=kubed --namespace $KUBED_NAMESPACE
     kubectl delete clusterrole -l app=kubed --namespace $KUBED_NAMESPACE
+    kubectl delete rolebindings -l app=kubed --namespace $KUBED_NAMESPACE
+    kubectl delete role -l app=kubed --namespace $KUBED_NAMESPACE
 
     exit 0
 fi
@@ -143,6 +147,7 @@ if [ "$KUBED_ENABLE_RBAC" = true ]; then
     kubectl create serviceaccount $KUBED_SERVICE_ACCOUNT --namespace $KUBED_NAMESPACE
     kubectl label serviceaccount $KUBED_SERVICE_ACCOUNT app=kubed --namespace $KUBED_NAMESPACE
     curl -fsSL https://raw.githubusercontent.com/appscode/kubed/0.5.0/hack/deploy/rbac-list.yaml | $ONESSL envsubst | kubectl auth reconcile -f -
+    curl -fsSL https://raw.githubusercontent.com/appscode/kubed/0.5.0/hack/deploy/user-roles.yaml | $ONESSL envsubst | kubectl auth reconcile -f -
 fi
 
 if [ "$KUBED_RUN_ON_MASTER" -eq 1 ]; then
