@@ -49,11 +49,9 @@ var _ = Describe("Extract Docker Label", func() {
 		skip = false
 
 		if val, ok := os.LookupEnv("DOCKER_CFG"); !ok {
-			fmt.Println("____________not found_________")
 			skip = true
 		} else {
 			data = val
-			fmt.Println("________\n", data, "\n________")
 			secret = f.NewSecret(name, namespace, data, labels)
 		}
 

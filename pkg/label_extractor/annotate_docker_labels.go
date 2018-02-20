@@ -55,10 +55,8 @@ func (l *ExtractDockerLabel) GetLabels(namespace, repoName, tag string, secretNa
 	//log.Infoln("img =", image, "secret names =", secretNames)
 	var err error
 	image := repoName + ":" + tag
-	fmt.Println("___________________image:", image)
 
 	if l.twoQCache.Contains(image) {
-		fmt.Println("______________", image, "key already exists")
 		val, _ := l.twoQCache.Get(image)
 		return val.(map[string]string), nil
 	}
@@ -91,7 +89,6 @@ func (l *ExtractDockerLabel) GetLabels(namespace, repoName, tag string, secretNa
 			}
 
 			l.twoQCache.Add(image, labels)
-			fmt.Println("_____________________", image, "key is added")
 
 			return labels, err
 		}
@@ -108,7 +105,6 @@ func (l *ExtractDockerLabel) GetLabels(namespace, repoName, tag string, secretNa
 	}
 
 	l.twoQCache.Add(image, labels)
-	fmt.Println("_____________________", image, "key is added")
 
 	return labels, err
 }

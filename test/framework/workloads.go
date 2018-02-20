@@ -204,7 +204,7 @@ func (f *Invocation) NewStatefulSet(
 					Containers: containers,
 					ImagePullSecrets: []core.LocalObjectReference{
 						{
-							Name: svcName,
+							Name: name,
 						},
 					},
 				},
