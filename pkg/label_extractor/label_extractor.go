@@ -3,17 +3,16 @@ package label_extractor
 import (
 	"sync"
 
-	"github.com/appscode/go/log"
-	"k8s.io/api/apps/v1beta1"
+	"github.com/hashicorp/golang-lru"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
 )
 
 type ExtractDockerLabel struct {
 	kubeClient kubernetes.Interface
 
-	enable bool
-	lock   sync.RWMutex
+	enable    bool
+	twoQCache *lru.TwoQueueCache
+	lock      sync.RWMutex
 }
 
 type RegistrySecret struct {
@@ -29,54 +28,7 @@ func New(kubeClient kubernetes.Interface) *ExtractDockerLabel {
 
 func (l *ExtractDockerLabel) Configure(enable bool) {
 	l.lock.Lock()
-	defer l.lock.Unlock()
-
 	l.enable = enable
+	l.twoQCache, _ = lru.New2Q(128)
+	l.lock.Unlock()
 }
-
-func (l *ExtractDockerLabel) ExtractDockerLabelHandler() cache.ResourceEventHandler {
-	return l
-}
-
-func (l *ExtractDockerLabel) OnAdd(obj interface{}) {
-	l.lock.RLock()
-	defer l.lock.RUnlock()
-
-	if !l.enable {
-		return
-	}
-
-	if res, ok := obj.(*v1beta1.Deployment); ok {
-		if err := l.Annotate(res); err != nil {
-			log.Errorln(err)
-		}
-	}
-}
-
-func (l *ExtractDockerLabel) OnUpdate(oldObj, newObj interface{}) {
-	l.lock.RLock()
-	defer l.lock.RUnlock()
-
-	if !l.enable {
-		return
-	}
-
-	oldRes, ok := oldObj.(*v1beta1.Deployment)
-	if !ok {
-		return
-	}
-	newRes, ok := newObj.(*v1beta1.Deployment)
-	if !ok {
-		return
-	}
-
-	if oldRes.ResourceVersion == newRes.ResourceVersion {
-		return
-	} else {
-		if err := l.Annotate(newRes); err != nil {
-			log.Errorln(err)
-		}
-	}
-}
-
-func (l *ExtractDockerLabel) OnDelete(obj interface{}) {}

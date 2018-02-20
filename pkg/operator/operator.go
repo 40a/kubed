@@ -162,19 +162,27 @@ func (op *Operator) Configure() error {
 func (op *Operator) setupWorkloadInformers() {
 	deploymentInformer := op.kubeInformerFactory.Apps().V1beta1().Deployments().Informer()
 	op.addEventHandlers(deploymentInformer, apps.SchemeGroupVersion.WithKind("Deployment"))
-	deploymentInformer.AddEventHandler(op.extractDockerLabel.ExtractDockerLabelHandler())
+	deploymentInformer.AddEventHandler(op.extractDockerLabel.ExtractFromDeploymentHandler())
 
 	rcInformer := op.kubeInformerFactory.Core().V1().ReplicationControllers().Informer()
 	op.addEventHandlers(rcInformer, core.SchemeGroupVersion.WithKind("ReplicationController"))
+	rcInformer.AddEventHandler(op.extractDockerLabel.ExtractFromReplicationControllerHandler())
 
 	rsInformer := op.kubeInformerFactory.Extensions().V1beta1().ReplicaSets().Informer()
 	op.addEventHandlers(rsInformer, extensions.SchemeGroupVersion.WithKind("ReplicaSet"))
+	rsInformer.AddEventHandler(op.extractDockerLabel.ExtractFromReplicaSetHandler())
 
 	daemonSetInformer := op.kubeInformerFactory.Extensions().V1beta1().DaemonSets().Informer()
 	op.addEventHandlers(daemonSetInformer, extensions.SchemeGroupVersion.WithKind("DaemonSet"))
+	daemonSetInformer.AddEventHandler(op.extractDockerLabel.ExtractFromDaemonSetHandler())
 
 	jobInformer := op.kubeInformerFactory.Batch().V1().Jobs().Informer()
 	op.addEventHandlers(jobInformer, batch.SchemeGroupVersion.WithKind("Job"))
+	jobInformer.AddEventHandler(op.extractDockerLabel.ExtractFromJobHandler())
+
+	stsInformer := op.kubeInformerFactory.Apps().V1beta1().StatefulSets().Informer()
+	op.addEventHandlers(stsInformer, apps.SchemeGroupVersion.WithKind("StatefulSet"))
+	stsInformer.AddEventHandler(op.extractDockerLabel.ExtractFromStatefulSetHandler())
 
 	op.kubeInformerFactory.Core().V1().Pods().Informer()
 }

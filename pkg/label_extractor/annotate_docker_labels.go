@@ -7,15 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/appscode/go/log"
-	apps_util "github.com/appscode/kutil/apps/v1beta1"
-	core_util "github.com/appscode/kutil/core/v1"
 	"github.com/docker/docker/api/types"
 	"github.com/heroku/docker-registry-client/registry"
-	"k8s.io/api/apps/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/kubernetes/pkg/util/parsers"
 )
 
 // getAllSecrets() takes imagePullSecrets and return the list of secret names as an array of
@@ -50,55 +45,23 @@ func removeOldAnnotations(annotations map[string]string, prefix string) {
 	}
 }
 
-// This method takes a deployment <deploy> and checks if there exists any labels in container images
-// at PodTemplateSpec. If exists then add them to annotation of the <deploy>. It uses the secrets
-// provided at 'imagePullSecrets' for getting labels from images
-func (l *ExtractDockerLabel) Annotate(deploy *v1beta1.Deployment) error {
-	secretNames := getAllSecrets(deploy.Spec.Template.Spec.ImagePullSecrets)
-
-	annotations := make(map[string]string)
-	for _, cont := range deploy.Spec.Template.Spec.Containers {
-		img := cont.Image
-
-		labels, err := l.GetLabels(deploy.ObjectMeta.GetNamespace(), img, secretNames)
-		if err != nil {
-			return err
-		}
-
-		prefix := "docker.com/" + cont.Name + "-"
-		addPrefixToLabels(labels, prefix)
-		core_util.UpsertMap(annotations, labels)
-	}
-
-	_, status, err := apps_util.PatchDeployment(l.kubeClient, deploy, func(deployment *v1beta1.Deployment) *v1beta1.Deployment {
-		removeOldAnnotations(deployment.ObjectMeta.Annotations, "docker.com/")
-		deployment.ObjectMeta.SetAnnotations(annotations)
-
-		return deployment
-	})
-
-	log.Infoln("status =", status)
-	if err != nil {
-		return fmt.Errorf("error status = %s: %v", status, err)
-	}
-
-	return nil
-}
-
 // This method takes namespace_name <namespace> of provided secrets <secretNames> and a docker image
 // name <image>. For each secret it reads the config data of secret and store it to registrySecrets
 // (map[string]RegistrySecret) where the api url is the key and value is the credentials. Then it tries
 // to extract labels of the <image> for all secrets' content. If found then returns labels otherwise
 // returns corresponding error. If <image> is not found with the secret info, then it tries with the
 // public docker url="https://registry-1.docker.io/"
-func (l *ExtractDockerLabel) GetLabels(namespace, image string, secretNames []string) (map[string]string, error) {
-	log.Infoln("img =", image, "secret names =", secretNames)
+func (l *ExtractDockerLabel) GetLabels(namespace, repoName, tag string, secretNames []string) (map[string]string, error) {
+	//log.Infoln("img =", image, "secret names =", secretNames)
+	var err error
+	image := repoName + ":" + tag
+	fmt.Println("___________________image:", image)
 
-	repo, tag, _, err := parsers.ParseImageName(image)
-	if err != nil {
-		return nil, err
+	if l.twoQCache.Contains(image) {
+		fmt.Println("______________", image, "key already exists")
+		val, _ := l.twoQCache.Get(image)
+		return val.(map[string]string), nil
 	}
-	repoName := repo[10:]
 
 	for _, item := range secretNames {
 		secret, err := l.kubeClient.CoreV1().Secrets(namespace).Get(item, metav1.GetOptions{})
@@ -127,6 +90,9 @@ func (l *ExtractDockerLabel) GetLabels(namespace, image string, secretNames []st
 				continue
 			}
 
+			l.twoQCache.Add(image, labels)
+			fmt.Println("_____________________", image, "key is added")
+
 			return labels, err
 		}
 	}
@@ -134,12 +100,15 @@ func (l *ExtractDockerLabel) GetLabels(namespace, image string, secretNames []st
 	url := "https://registry-1.docker.io/"
 	username := "" // anonymous
 	pass := ""     // anonymous
-	labels, extractErr, errStatus := l.ExtractLabelsForThisCred(url, username, pass, repoName, tag)
 
+	labels, extractErr, errStatus := l.ExtractLabelsForThisCred(url, username, pass, repoName, tag)
 	if errStatus != 0 {
 		err = fmt.Errorf("%v\n%v", err, extractErr)
-		return nil, fmt.Errorf("couldn't find image(%s): %v", image, err)
+		return nil, fmt.Errorf("couldn't find image(%s:%s): %v", repoName, tag, err)
 	}
+
+	l.twoQCache.Add(image, labels)
+	fmt.Println("_____________________", image, "key is added")
 
 	return labels, err
 }
